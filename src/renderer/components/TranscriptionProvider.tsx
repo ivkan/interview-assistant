@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
-import { useAudioCapture } from '../hooks/useAudioCapture'
+// import { useAudioCapture } from '../hooks/useAudioCapture'
+import { useSafeAudioCapture as useAudioCapture } from '../hooks/useSafeAudioCapture'
 import { useAssemblyAI } from '../hooks/useAssemblyAI'
 import { useQuestionDetection } from '../hooks/useQuestionDetection'
 import { useAIResponse } from '../hooks/useAIResponse'
@@ -59,7 +60,7 @@ export function TranscriptionProvider({ children }: TranscriptionProviderProps) 
     if (aiResponse.availableProviders.openai || aiResponse.availableProviders.deepseek) {
       console.log('🤖 AI Response ready: Question → AI → Answer')
     }
-  }, [aiResponse.availableProviders])
+  }, [aiResponse.availableProviders.openai, aiResponse.availableProviders.deepseek])
 
   // Log errors
   useEffect(() => {

@@ -68,7 +68,11 @@ export class AssemblyAIService extends EventEmitter {
       // Connect to WebSocket
       await this.connectWebSocket()
     } catch (error) {
-      console.error('Failed to connect to AssemblyAI:', error)
+      if (this.config.apiKey.includes('test_')) {
+        console.warn('🧪 Using test API key - AssemblyAI connection will fail (this is expected)')
+      } else {
+        console.error('Failed to connect to AssemblyAI:', error)
+      }
       throw error
     }
   }

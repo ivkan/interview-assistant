@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { AssemblyAIService, createAssemblyAIService, TranscriptionResult } from '../services/assemblyAI'
+import { AssemblyAIProxyService, createAssemblyAIProxyService } from '../services/assemblyAIProxy'
 import { useInterviewStore } from '../store/interviewStore'
 
 interface UseAssemblyAIProps {
@@ -14,18 +14,23 @@ export function useAssemblyAI({ apiKey, language = 'en', autoStart = false }: Us
   const [error, setError] = useState<string | null>(null)
   const [partialTranscript, setPartialTranscript] = useState('')
   
-  const serviceRef = useRef<AssemblyAIService | null>(null)
+  const serviceRef = useRef<AssemblyAIProxyService | null>(null)
+  const connectionAttemptRef = useRef<boolean>(false)
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const retryCountRef = useRef<number>(0)
   const { isActive, addTranscriptEntry } = useInterviewStore()
 
   // Initialize service
   useEffect(() => {
-    if (!apiKey) return
+    console.log(`[${new Date().toISOString()}] 🔄 useAssemblyAI useEffect triggered - apiKey:`, apiKey?.substring(0, 8) + '...')
+    if (!apiKey) {
+      console.log(`[${new Date().toISOString()}] ❌ No API key provided`)
+      return
+    }
 
-    const service = createAssemblyAIService({
+    const service = createAssemblyAIProxyService({
       apiKey,
-      language,
-      punctuate: true,
-      format_text: true
+      sampleRate: 48000
     })
 
     // Set up event listeners
@@ -33,6 +38,7 @@ export function useAssemblyAI({ apiKey, language = 'en', autoStart = false }: Us
       setIsConnected(true)
       setIsConnecting(false)
       setError(null)
+      retryCountRef.current = 0 // Reset retry count on success
       console.log('AssemblyAI connected successfully')
     })
 
@@ -48,17 +54,17 @@ export function useAssemblyAI({ apiKey, language = 'en', autoStart = false }: Us
       console.error('AssemblyAI error:', err)
     })
 
-    service.on('session-begin', (data: TranscriptionResult) => {
+    service.on('session-begin', (data: any) => {
       console.log('AssemblyAI session started:', data)
     })
 
-    service.on('partial-transcript', (data: TranscriptionResult) => {
+    service.on('transcript-partial', (data: any) => {
       if (data.text) {
         setPartialTranscript(data.text)
       }
     })
 
-    service.on('final-transcript', (data: TranscriptionResult) => {
+    service.on('transcript-final', (data: any) => {
       if (data.text && data.text.trim()) {
         // Add to transcript store
         addTranscriptEntry(data.text.trim())
@@ -84,16 +90,29 @@ export function useAssemblyAI({ apiKey, language = 'en', autoStart = false }: Us
 
   // Connect/disconnect based on interview state
   useEffect(() => {
-    if (isActive && !isConnected && !isConnecting && apiKey) {
+    console.log(`[${new Date().toISOString()}] 🔄 useAssemblyAI connect/disconnect useEffect triggered:`, {
+      isActive, isConnected, isConnecting, hasApiKey: !!apiKey
+    })
+    
+    // Prevent multiple connection attempts
+    if (isActive && !isConnected && !isConnecting && apiKey && !connectionAttemptRef.current) {
+      console.log(`[${new Date().toISOString()}] 🔌 Triggering connect...`)
+      connectionAttemptRef.current = true
       connect()
     } else if (!isActive && isConnected) {
+      console.log(`[${new Date().toISOString()}] 🔌 Triggering disconnect...`)
+      connectionAttemptRef.current = false
       disconnect()
+    } else if (!isActive) {
+      // Reset connection attempt flag when interview is not active
+      connectionAttemptRef.current = false
     }
-  }, [isActive, isConnected, isConnecting, apiKey])
+  }, [isActive, isConnected, apiKey]) // Removed isConnecting to prevent loops
 
   const connect = useCallback(async () => {
     if (!serviceRef.current || !apiKey) {
-      setError('AssemblyAI service not initialized or API key missing')
+      console.error(`[${new Date().toISOString()}] ❌ AssemblyAI service not initialized or API key missing`)
+      connectionAttemptRef.current = false
       return
     }
 
@@ -103,12 +122,42 @@ export function useAssemblyAI({ apiKey, language = 'en', autoStart = false }: Us
     try {
       await serviceRef.current.connect()
     } catch (err: any) {
+      console.error(`[${new Date().toISOString()}] ❌ AssemblyAI connection failed:`, err.message)
       setError(err.message)
       setIsConnecting(false)
+      
+      // Retry with exponential backoff (max 3 retries)
+      if (retryCountRef.current < 3 && isActive) {
+        retryCountRef.current++
+        const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 5000)
+        console.log(`[${new Date().toISOString()}] ⏳ Retrying in ${delay}ms (attempt ${retryCountRef.current}/3)`)
+        
+        retryTimeoutRef.current = setTimeout(() => {
+          connectionAttemptRef.current = false
+          if (isActive) {
+            connect()
+          }
+        }, delay)
+      } else {
+        // Give up after max retries
+        connectionAttemptRef.current = false
+        retryCountRef.current = 0
+        console.error(`[${new Date().toISOString()}] ❌ AssemblyAI connection failed after ${retryCountRef.current} retries`)
+      }
     }
   }, [apiKey])
 
   const disconnect = useCallback(async () => {
+    // Clear any pending retries
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current)
+      retryTimeoutRef.current = null
+    }
+    
+    // Reset retry count
+    retryCountRef.current = 0
+    connectionAttemptRef.current = false
+    
     if (serviceRef.current) {
       await serviceRef.current.disconnect()
     }
@@ -116,15 +165,9 @@ export function useAssemblyAI({ apiKey, language = 'en', autoStart = false }: Us
 
   const sendAudioData = useCallback((samples: Float32Array, sampleRate: number = 48000) => {
     if (serviceRef.current && isConnected) {
-      serviceRef.current.sendAudioFromSamples(samples, sampleRate)
+      serviceRef.current.sendAudioData(samples)
     }
   }, [isConnected])
-
-  const updateLanguage = useCallback((newLanguage: string) => {
-    if (serviceRef.current) {
-      serviceRef.current.updateConfig({ language: newLanguage })
-    }
-  }, [])
 
   return {
     isConnected,
@@ -133,7 +176,6 @@ export function useAssemblyAI({ apiKey, language = 'en', autoStart = false }: Us
     partialTranscript,
     connect,
     disconnect,
-    sendAudioData,
-    updateLanguage
+    sendAudioData
   }
 }

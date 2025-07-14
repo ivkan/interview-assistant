@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { audioCaptureService } from '../services/audioCapture'
+import { safeAudioCaptureService } from '../services/safeAudioCapture'
 import { useInterviewStore } from '../store/interviewStore'
 
 interface AudioDevice {
@@ -7,21 +7,15 @@ interface AudioDevice {
   label: string
 }
 
-interface SystemAudioSource {
-  id: string
-  name: string
-  thumbnail: string
-}
-
 interface UseAudioCaptureProps {
   onAudioData?: (samples: Float32Array, sampleRate: number) => void
 }
 
-export function useAudioCapture(props?: UseAudioCaptureProps) {
+export function useSafeAudioCapture(props?: UseAudioCaptureProps) {
   const [isCapturing, setIsCapturing] = useState(false)
   const [audioLevel, setAudioLevel] = useState(0)
   const [audioDevices, setAudioDevices] = useState<AudioDevice[]>([])
-  const [systemSources, setSystemSources] = useState<SystemAudioSource[]>([])
+  const [systemSources, setSystemSources] = useState<any[]>([])
   const [selectedMicrophone, setSelectedMicrophone] = useState<string>('default')
   const [selectedSystemSource, setSelectedSystemSource] = useState<string | null>(null)
   
@@ -32,23 +26,23 @@ export function useAudioCapture(props?: UseAudioCaptureProps) {
   useEffect(() => {
     const initializeDevices = async () => {
       try {
-        const devices = await audioCaptureService.initialize()
-        setAudioDevices(devices.map(d => ({
-          deviceId: d.deviceId,
-          label: d.label || `Microphone ${d.deviceId.slice(0, 8)}`
-        })))
+        const devices = await safeAudioCaptureService.getAudioDevices()
+        const audioInputs = devices.map(device => ({
+          deviceId: device.deviceId,
+          label: device.label || `Microphone ${device.deviceId}`
+        }))
+        setAudioDevices(audioInputs)
       } catch (error) {
-        console.error('Failed to initialize audio devices:', error)
+        console.error('Failed to get audio devices:', error)
       }
     }
 
     initializeDevices()
   }, [])
 
-  // Load system audio sources
   const loadSystemSources = useCallback(async () => {
     try {
-      const sources = await audioCaptureService.getSystemAudioSources()
+      const sources = await safeAudioCaptureService.getSystemAudioSources()
       setSystemSources(sources || [])
     } catch (error) {
       console.error('Failed to load system sources:', error)
@@ -65,22 +59,20 @@ export function useAudioCapture(props?: UseAudioCaptureProps) {
     isStartingRef.current = true
     
     try {
-      await audioCaptureService.startCapture({
-        microphoneDeviceId: selectedMicrophone,
-        systemAudioSourceId: selectedSystemSource || undefined
+      await safeAudioCaptureService.startCapture({
+        microphoneDeviceId: selectedMicrophone
       })
       setIsCapturing(true)
     } catch (error) {
       console.error('Failed to start audio capture:', error)
-      // Don't re-throw to prevent unhandled promise rejection
     } finally {
       isStartingRef.current = false
     }
-  }, [selectedMicrophone, selectedSystemSource])
+  }, [selectedMicrophone])
 
   const stopCapture = useCallback(async () => {
     try {
-      await audioCaptureService.stopCapture()
+      await safeAudioCaptureService.stopCapture()
       setIsCapturing(false)
       setAudioLevel(0)
     } catch (error) {
@@ -100,12 +92,12 @@ export function useAudioCapture(props?: UseAudioCaptureProps) {
       }
     }
 
-    audioCaptureService.on('audio-level', handleAudioLevel)
-    audioCaptureService.on('audio-data', handleAudioData)
+    safeAudioCaptureService.on('audio-level', handleAudioLevel)
+    safeAudioCaptureService.on('audio-data', handleAudioData)
 
     return () => {
-      audioCaptureService.off('audio-level', handleAudioLevel)
-      audioCaptureService.off('audio-data', handleAudioData)
+      safeAudioCaptureService.off('audio-level', handleAudioLevel)
+      safeAudioCaptureService.off('audio-data', handleAudioData)
     }
   }, [props?.onAudioData])
 
@@ -118,10 +110,10 @@ export function useAudioCapture(props?: UseAudioCaptureProps) {
         if (!mounted) return
         
         if (isActive && !isCapturing) {
-          console.log('🎤 Starting audio capture...')
+          console.log(`[${new Date().toISOString()}] 🎤 Starting safe audio capture...`)
           await startCapture()
         } else if (!isActive && isCapturing) {
-          console.log('🛑 Stopping audio capture...')
+          console.log(`[${new Date().toISOString()}] 🛑 Stopping safe audio capture...`)
           await stopCapture()
         }
       } catch (error) {

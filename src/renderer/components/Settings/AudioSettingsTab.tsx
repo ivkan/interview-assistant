@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Separator } from '../ui/separator'
 import { Mic, Volume2, TestTube } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
-import { useAudioCapture } from '../../hooks/useAudioCapture'
+import { useSafeAudioCapture as useAudioCapture } from '../../hooks/useSafeAudioCapture'
 
 export function AudioSettingsTab() {
   const { audioSettings, updateAudioSettings } = useSettingsStore()

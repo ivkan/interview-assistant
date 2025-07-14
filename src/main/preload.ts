@@ -34,6 +34,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('mark-as-question', callback)
   },
   
+  // AssemblyAI proxy
+  assemblyAIConnect: (config: { apiKey: string; sampleRate?: number }) => 
+    ipcRenderer.invoke('assemblyai-connect', config),
+  assemblyAISendAudio: (audioData: number[]) => 
+    ipcRenderer.send('assemblyai-send-audio', audioData),
+  assemblyAIDisconnect: () => 
+    ipcRenderer.invoke('assemblyai-disconnect'),
+  onAssemblyAIMessage: (callback: (message: any) => void) => {
+    ipcRenderer.on('assemblyai-message', (_event, message) => callback(message))
+  },
+  onAssemblyAIDisconnected: (callback: (data: { code: number; reason: string }) => void) => {
+    ipcRenderer.on('assemblyai-disconnected', (_event, data) => callback(data))
+  },
+  
   // Remove listeners
   removeAllListeners: (channel: string) => {
     ipcRenderer.removeAllListeners(channel)

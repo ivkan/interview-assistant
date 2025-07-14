@@ -51,6 +51,10 @@ app.whenReady().then(() => {
   createWindow()
   registerAudioHandlers()
   registerIPCHandlers()
+  
+  // Initialize AssemblyAI official proxy after app is ready
+  const { assemblyAIOfficialProxy } = require('./services/assemblyAIOfficialProxy')
+  console.log('✅ AssemblyAI official proxy initialized')
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

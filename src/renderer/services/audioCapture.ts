@@ -1,4 +1,5 @@
 import { EventEmitter } from '../utils/EventEmitter'
+import { audioContextManager } from './audioContextManager'
 
 interface AudioCaptureConfig {
   microphoneDeviceId?: string
@@ -40,10 +41,8 @@ export class AudioCaptureService extends EventEmitter {
     }
 
     try {
-      // Create audio context
-      this.audioContext = new AudioContext({
-        sampleRate: config.sampleRate || 48000
-      })
+      // Get audio context from manager
+      this.audioContext = await audioContextManager.getAudioContext()
 
       // Get microphone stream
       const microphoneConstraints: MediaStreamConstraints = {
@@ -55,8 +54,23 @@ export class AudioCaptureService extends EventEmitter {
         }
       }
 
-      this.microphoneStream = await navigator.mediaDevices.getUserMedia(microphoneConstraints)
-      this.microphoneSource = this.audioContext.createMediaStreamSource(this.microphoneStream)
+      try {
+        this.microphoneStream = await navigator.mediaDevices.getUserMedia(microphoneConstraints)
+        this.microphoneSource = this.audioContext.createMediaStreamSource(this.microphoneStream)
+      } catch (error: any) {
+        if (error.name === 'NotAllowedError') {
+          console.error('Microphone permission denied')
+          this.emit('error', new Error('Microphone permission denied. Please allow access to continue.'))
+          throw new Error('Microphone permission denied')
+        } else if (error.name === 'NotFoundError') {
+          console.error('No microphone found')
+          this.emit('error', new Error('No microphone found. Please connect a microphone.'))
+          throw new Error('No microphone found')
+        } else {
+          console.error('Failed to get microphone access:', error)
+          throw error
+        }
+      }
 
       // Get system audio if source ID provided
       if (config.systemAudioSourceId) {
@@ -95,8 +109,20 @@ export class AudioCaptureService extends EventEmitter {
       }
 
       // Create script processor for audio processing
+      // Note: ScriptProcessorNode is deprecated but still needed for real-time processing
       const bufferSize = 4096
-      this.processor = this.audioContext.createScriptProcessor(bufferSize, 1, 1)
+      
+      // Check if we can create script processor safely
+      if (!this.audioContext.createScriptProcessor) {
+        throw new Error('ScriptProcessorNode not supported in this environment')
+      }
+      
+      try {
+        this.processor = this.audioContext.createScriptProcessor(bufferSize, 1, 1)
+      } catch (error) {
+        console.error('Failed to create ScriptProcessor:', error)
+        throw new Error('Audio processing not available. Please check browser compatibility.')
+      }
 
       // Connect audio sources to processor
       if (this.microphoneSource) {
@@ -105,6 +131,9 @@ export class AudioCaptureService extends EventEmitter {
       if (this.systemAudioSource) {
         this.systemAudioSource.connect(this.processor)
       }
+      
+      // Connect processor to destination (required for processing to work)
+      this.processor.connect(this.audioContext.destination)
 
       // Process audio data
       this.processor.onaudioprocess = (event) => {
@@ -172,11 +201,8 @@ export class AudioCaptureService extends EventEmitter {
       this.processor = null
     }
 
-    // Close audio context
-    if (this.audioContext) {
-      await this.audioContext.close()
-      this.audioContext = null
-    }
+    // Don't close the shared audio context - just nullify our reference
+    this.audioContext = null
 
     this.emit('capture-stopped')
 

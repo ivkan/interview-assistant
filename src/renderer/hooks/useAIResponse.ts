@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { AIResponseService, createAIResponseService, AIProvider, ResponseContext, AIResponse } from '../services/aiResponse'
 import { useSettingsStore } from '../store/settingsStore'
 import { useInterviewStore } from '../store/interviewStore'
@@ -26,6 +26,13 @@ export function useAIResponse({
     const availableProvider = getAvailableProvider()
     if (!availableProvider) return
 
+    // Avoid recreating service if already exists with same provider
+    if (serviceRef.current && 
+        serviceRef.current.getProvider().name === availableProvider.name &&
+        serviceRef.current.getProvider().apiKey === availableProvider.apiKey) {
+      return
+    }
+
     const service = createAIResponseService(availableProvider)
     
     // Set up event listeners
@@ -43,12 +50,16 @@ export function useAIResponse({
           activeQuestionRef.current = null
         }
       } else {
-        setCurrentResponse(prev => prev + response.content)
-        
-        // Update the question response in real-time
-        if (activeQuestionRef.current) {
-          updateQuestionResponse(activeQuestionRef.current, currentResponse + response.content)
-        }
+        setCurrentResponse(prev => {
+          const newResponse = prev + response.content
+          
+          // Update the question response in real-time
+          if (activeQuestionRef.current) {
+            updateQuestionResponse(activeQuestionRef.current, newResponse)
+          }
+          
+          return newResponse
+        })
       }
     })
 
@@ -191,6 +202,11 @@ export function useAIResponse({
     }
   }, [isGenerating, setQuestionLoading])
 
+  const availableProviders = useMemo(() => ({
+    openai: !!apiKeys.openAI,
+    deepseek: !!apiKeys.deepSeek
+  }), [apiKeys.openAI, apiKeys.deepSeek])
+
   return {
     isGenerating,
     error,
@@ -198,9 +214,6 @@ export function useAIResponse({
     generateResponse,
     retryResponse,
     stopGeneration,
-    availableProviders: {
-      openai: !!apiKeys.openAI,
-      deepseek: !!apiKeys.deepSeek
-    }
+    availableProviders
   }
 }

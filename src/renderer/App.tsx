@@ -8,6 +8,7 @@ import { useInterviewStore } from './store/interviewStore'
 import { useSettingsStore } from './store/settingsStore'
 import { useQuestionDetection } from './hooks/useQuestionDetection'
 import { ThemeProvider } from './components/ThemeProvider'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import './utils/mockData' // Load mock data utilities
 
 function App() {
@@ -27,7 +28,7 @@ function App() {
     // Only update if we have keys from environment
     if (envKeys.assemblyAI || envKeys.openAI || envKeys.deepSeek) {
       updateAPIKeys(envKeys)
-      console.log('🔑 API keys loaded from environment')
+      console.log(`[${new Date().toISOString()}] 🔑 API keys loaded from environment`)
     }
   }, [])
 
@@ -72,39 +73,49 @@ function App() {
   }, [isActive])
 
   const handleToggleInterview = () => {
-    if (isActive) {
-      endInterview()
-    } else {
-      startInterview()
+    console.log('🎯 Toggle interview clicked, isActive:', isActive)
+    try {
+      if (isActive) {
+        console.log('📴 Ending interview...')
+        endInterview()
+      } else {
+        console.log('🎬 Starting interview...')
+        startInterview()
+        console.log('✅ Interview started successfully')
+      }
+    } catch (error) {
+      console.error('❌ Error toggling interview:', error)
     }
   }
 
   return (
-    <ThemeProvider defaultTheme="light" storageKey="interview-assistant-theme">
-      <TranscriptionProvider>
-        <div className="flex flex-col h-screen bg-background">
-          <Toolbar 
-            isActive={isActive}
-            elapsedTime={elapsedTime}
-            onToggleInterview={handleToggleInterview}
-          />
-          
-          <div className="flex flex-1 overflow-hidden">
-            <div className="w-80 border-r">
-              <TranscriptColumn />
-            </div>
+    <ErrorBoundary>
+      <ThemeProvider defaultTheme="light" storageKey="interview-assistant-theme">
+        <TranscriptionProvider>
+          <div className="flex flex-col h-screen bg-background">
+            <Toolbar 
+              isActive={isActive}
+              elapsedTime={elapsedTime}
+              onToggleInterview={handleToggleInterview}
+            />
             
-            <div className="flex-1">
-              <ResponseColumn />
-            </div>
-            
-            <div className="w-72 border-l">
-              <HistoryColumn />
+            <div className="flex flex-1 overflow-hidden">
+              <div className="w-80 border-r">
+                <TranscriptColumn />
+              </div>
+              
+              <div className="flex-1">
+                <ResponseColumn />
+              </div>
+              
+              <div className="w-72 border-l">
+                <HistoryColumn />
+              </div>
             </div>
           </div>
-        </div>
-      </TranscriptionProvider>
-    </ThemeProvider>
+        </TranscriptionProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }
 
