@@ -8,6 +8,11 @@ dist/
 release/
 out/
 
+# Google Cloud credentials
+service-account-key.json
+*-service-account-key.json
+google-cloud-credentials.json
+
 # Environment variables
 .env
 .env.local
