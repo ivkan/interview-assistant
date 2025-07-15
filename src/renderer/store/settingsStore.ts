@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export interface APIKeys {
-  assemblyAI: string
+  assemblyAI: string // To be removed completely after migration
   openAI: string
   deepSeek: string
 }
@@ -49,7 +49,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       apiKeys: {
-        assemblyAI: '',
+        assemblyAI: '', // To be removed completely after migration
         openAI: '',
         deepSeek: ''
       },
@@ -104,7 +104,8 @@ export const useSettingsStore = create<SettingsState>()(
 
       isConfigured: () => {
         const { apiKeys } = get()
-        return !!(apiKeys.assemblyAI && (apiKeys.openAI || apiKeys.deepSeek))
+        // Removed AssemblyAI requirement, only need AI provider
+        return !!(apiKeys.openAI || apiKeys.deepSeek)
       }
     }),
     {

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 // import { useAudioCapture } from '../hooks/useAudioCapture'
 import { useSafeAudioCapture as useAudioCapture } from '../hooks/useSafeAudioCapture'
-import { useAssemblyAI } from '../hooks/useAssemblyAI'
+// import { useAssemblyAI } from '../hooks/useAssemblyAI' // Removed AssemblyAI
 import { useQuestionDetection } from '../hooks/useQuestionDetection'
 import { useAIResponse } from '../hooks/useAIResponse'
 import { useSettingsStore } from '../store/settingsStore'
@@ -13,12 +13,8 @@ interface TranscriptionProviderProps {
 export function TranscriptionProvider({ children }: TranscriptionProviderProps) {
   const { apiKeys, transcriptionSettings } = useSettingsStore()
   
-  // Initialize AssemblyAI with settings
-  const assemblyAI = useAssemblyAI({
-    apiKey: apiKeys.assemblyAI,
-    language: transcriptionSettings.autoDetectLanguage ? 'en' : transcriptionSettings.language,
-    autoStart: true
-  })
+  // TODO: Initialize new transcription service
+  // Temporarily disabled AssemblyAI integration
 
   // Initialize question detection
   const questionDetection = useQuestionDetection({
@@ -39,22 +35,19 @@ export function TranscriptionProvider({ children }: TranscriptionProviderProps) 
     preferredProvider: 'openai' // Can be made configurable
   })
 
-  // Initialize audio capture with AssemblyAI integration
+  // Initialize audio capture (transcription service to be integrated later)
   const audioCapture = useAudioCapture({
     onAudioData: (samples, sampleRate) => {
-      // Send audio data to AssemblyAI when connected
-      if (assemblyAI.isConnected) {
-        assemblyAI.sendAudioData(samples, sampleRate)
-      }
+      // TODO: Send audio data to new transcription service
+      console.log('Audio data received, transcription service not yet integrated')
     }
   })
 
   // Log system status for debugging
   useEffect(() => {
-    if (assemblyAI.isConnected) {
-      console.log('🎤 Transcription ready: Audio → AssemblyAI → Transcript')
-    }
-  }, [assemblyAI.isConnected])
+    // TODO: Add transcription service status logging
+    console.log('⚠️ Transcription service not yet integrated')
+  }, [])
 
   useEffect(() => {
     if (aiResponse.availableProviders.openai || aiResponse.availableProviders.deepseek) {
@@ -64,10 +57,8 @@ export function TranscriptionProvider({ children }: TranscriptionProviderProps) 
 
   // Log errors
   useEffect(() => {
-    if (assemblyAI.error) {
-      console.error('AssemblyAI Error:', assemblyAI.error)
-    }
-  }, [assemblyAI.error])
+    // TODO: Add transcription service error logging
+  }, [])
 
   useEffect(() => {
     if (aiResponse.error) {

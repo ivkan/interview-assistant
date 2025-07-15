@@ -9,7 +9,6 @@ import { useSettingsStore } from '../../store/settingsStore'
 export function APIKeysTab() {
   const { apiKeys, updateAPIKeys } = useSettingsStore()
   const [showKeys, setShowKeys] = useState({
-    assemblyAI: false,
     openAI: false,
     deepSeek: false
   })
@@ -39,47 +38,6 @@ export function APIKeysTab() {
       </div>
 
       <div className="space-y-4">
-        {/* AssemblyAI */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="assemblyai-key">AssemblyAI API Key</Label>
-            <div className="flex items-center space-x-2">
-              {apiKeys.assemblyAI ? (
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              ) : (
-                <XCircle className="h-4 w-4 text-red-500" />
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.open('https://www.assemblyai.com/', '_blank')}
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <div className="flex space-x-2">
-            <Input
-              id="assemblyai-key"
-              type={showKeys.assemblyAI ? 'text' : 'password'}
-              placeholder="Enter your AssemblyAI API key"
-              value={tempKeys.assemblyAI}
-              onChange={(e) => setTempKeys(prev => ({ ...prev, assemblyAI: e.target.value }))}
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => toggleShowKey('assemblyAI')}
-            >
-              {showKeys.assemblyAI ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Required for real-time speech transcription
-          </p>
-        </div>
-
-        <Separator />
 
         {/* OpenAI */}
         <div className="space-y-2">
@@ -167,8 +125,8 @@ export function APIKeysTab() {
       <div className="bg-muted/50 p-4 rounded-lg">
         <h4 className="text-sm font-medium mb-2">Requirements</h4>
         <ul className="text-xs text-muted-foreground space-y-1">
-          <li>• AssemblyAI key is required for transcription</li>
           <li>• At least one AI provider (OpenAI or DeepSeek) is required for responses</li>
+          <li>• Transcription service will be integrated in a future update</li>
           <li>• API keys are stored securely and never shared</li>
         </ul>
       </div>

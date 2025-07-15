@@ -30,14 +30,10 @@ console.log(`   ${envExists ? '✅' : '⚠️ '} .env file ${envExists ? 'exists
 
 if (envExists) {
   const envContent = fs.readFileSync('.env', 'utf8')
-  const hasAssemblyAI = envContent.includes('VITE_ASSEMBLYAI_API_KEY=') && 
-                       !envContent.includes('test_') && !envContent.includes('""')
   const hasOpenAI = envContent.includes('VITE_OPENAI_API_KEY=') && 
                     !envContent.includes('test_') && !envContent.includes('""')
   const hasDeepSeek = envContent.includes('VITE_DEEPSEEK_API_KEY=') && 
                       !envContent.includes('test_') && !envContent.includes('""')
-  
-  console.log(`   ${hasAssemblyAI ? '✅' : '⚠️ '} AssemblyAI API key`)
   console.log(`   ${hasOpenAI ? '✅' : '⚠️ '} OpenAI API key`)
   console.log(`   ${hasDeepSeek ? '✅' : '⚠️ '} DeepSeek API key`)
 }

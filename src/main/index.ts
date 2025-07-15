@@ -52,9 +52,8 @@ app.whenReady().then(() => {
   registerAudioHandlers()
   registerIPCHandlers()
   
-  // Initialize AssemblyAI official proxy after app is ready
-  const { assemblyAIOfficialProxy } = require('./services/assemblyAIOfficialProxy')
-  console.log('✅ AssemblyAI official proxy initialized')
+  // TODO: Initialize new transcription service
+  console.log('⚠️ Transcription service to be integrated')
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

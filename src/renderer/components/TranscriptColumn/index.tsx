@@ -4,7 +4,7 @@ import { ScrollArea } from '../ui/scroll-area'
 import { MessageSquareText, Keyboard, Mic, MicOff, Wifi, WifiOff } from 'lucide-react'
 import { useInterviewStore } from '../../store/interviewStore'
 import { useSafeAudioCapture as useAudioCapture } from '../../hooks/useSafeAudioCapture'
-import { useAssemblyAI } from '../../hooks/useAssemblyAI'
+// import { useAssemblyAI } from '../../hooks/useAssemblyAI' // Removed AssemblyAI
 import { useSettingsStore } from '../../store/settingsStore'
 import { AudioLevelIndicator } from '../AudioLevelIndicator'
 import { cn } from '../../utils/cn'
@@ -13,10 +13,11 @@ export function TranscriptColumn() {
   const { transcript, isActive, markAsQuestion } = useInterviewStore()
   const { isCapturing, audioLevel } = useAudioCapture()
   const { apiKeys } = useSettingsStore()
-  const { isConnected, isConnecting, partialTranscript, error } = useAssemblyAI({
-    apiKey: apiKeys.assemblyAI,
-    autoStart: true
-  })
+  // TODO: Replace with new transcription service
+  const isConnected = false
+  const isConnecting = false
+  const partialTranscript = ''
+  const error = null
   const scrollRef = useRef<HTMLDivElement>(null)
   const [selectedEntryId, setSelectedEntryId] = React.useState<string | null>(null)
 

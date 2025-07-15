@@ -15,15 +15,12 @@ console.log(`   ${envExists ? '✅' : '❌'} .env file exists`)
 
 if (envExists) {
   const envContent = fs.readFileSync('.env', 'utf8')
-  const hasAssemblyAI = envContent.includes('VITE_ASSEMBLYAI_API_KEY=') && 
-                       !envContent.includes('VITE_ASSEMBLYAI_API_KEY=test_') &&
-                       !envContent.includes('VITE_ASSEMBLYAI_API_KEY=""')
   const hasOpenAI = envContent.includes('VITE_OPENAI_API_KEY=') && 
                     !envContent.includes('VITE_OPENAI_API_KEY=test_') &&
                     !envContent.includes('VITE_OPENAI_API_KEY=""')
   
-  console.log(`   ${hasAssemblyAI ? '✅' : '⚠️ '} AssemblyAI API key configured`)
   console.log(`   ${hasOpenAI ? '✅' : '⚠️ '} OpenAI API key configured`)
+  console.log('   ℹ️  Transcription service to be integrated')
 } else {
   console.log('   ℹ️  Run: cp .env.test .env')
   console.log('   ℹ️  Then add your API keys')
@@ -43,8 +40,6 @@ try {
 console.log()
 console.log('📁 Core Files Check:')
 const coreFiles = [
-  'src/renderer/services/assemblyAI.ts',
-  'src/renderer/hooks/useAssemblyAI.ts', 
   'src/renderer/hooks/useAudioCapture.ts',
   'src/renderer/components/TranscriptionProvider.tsx',
   'src/renderer/store/settingsStore.ts',
