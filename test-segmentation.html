@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text Segmentation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .segment { border: 1px solid #ddd; margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .complete { background-color: #e8f5e8; }
+        .partial { background-color: #fff3cd; }
+        .test-input { width: 100%; padding: 10px; margin: 10px 0; }
+        .button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Text Segmentation Test</h1>
+    <p>This demonstrates how the new text segmentation works for proper sentence boundaries.</p>
+    
+    <div>
+        <h2>Test Input</h2>
+        <textarea id="testInput" class="test-input" rows="4" placeholder="Enter text to test segmentation...">what's the best way to stay afloat and gain a million users is to reduce the load on everyone remember 48 hours straight just to decrease the load strictly speaking we didn't sleep for 2 days to accelerate acquiring millions of users that's exactly what I did nobody wants a 10% better picture who wouldn't want it running on cell phones nobody will fucking notice the difference and this codec and we'll work in this direction and that's it and dumbasses Well please don't exit castles you hate video chat that's not true you always hated it because I made it and you want to rewrite it and claim it as your own</textarea>
+        <br>
+        <button class="button" onclick="testSegmentation()">Test Segmentation</button>
+        <button class="button" onclick="clearResults()">Clear</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script>
+        // Simple text segmentation logic for demo
+        function findSentenceBoundaries(text) {
+            const MIN_SEGMENT_LENGTH = 10;
+            const segments = [];
+            
+            // Split by sentence endings
+            const sentences = text.split(/([.!?]+\s+)/).filter(s => s.trim());
+            
+            let currentSegment = '';
+            for (let i = 0; i < sentences.length; i++) {
+                currentSegment += sentences[i];
+                
+                // Check if this looks like a sentence ending
+                if (/[.!?]+\s*$/.test(currentSegment) && currentSegment.trim().length >= MIN_SEGMENT_LENGTH) {
+                    segments.push(currentSegment.trim());
+                    currentSegment = '';
+                }
+            }
+            
+            // Add any remaining text
+            if (currentSegment.trim()) {
+                segments.push(currentSegment.trim());
+            }
+            
+            return segments;
+        }
+        
+        function testSegmentation() {
+            const input = document.getElementById('testInput').value;
+            const results = document.getElementById('results');
+            
+            if (!input.trim()) {
+                results.innerHTML = '<p>Please enter some text to test.</p>';
+                return;
+            }
+            
+            const segments = findSentenceBoundaries(input);
+            
+            let html = '<h2>Segmentation Results</h2>';
+            html += '<p><strong>Original text:</strong> ' + input + '</p>';
+            html += '<p><strong>Number of segments:</strong> ' + segments.length + '</p>';
+            
+            segments.forEach((segment, index) => {
+                const isComplete = /[.!?]$/.test(segment.trim());
+                const className = isComplete ? 'complete' : 'partial';
+                const status = isComplete ? 'Complete' : 'Partial';
+                
+                html += `<div class="segment ${className}">
+                    <strong>Segment ${index + 1} (${status}):</strong><br>
+                    "${segment}"<br>
+                    <small>Length: ${segment.length} characters</small>
+                </div>`;
+            });
+            
+            results.innerHTML = html;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // Test with sample text on load
+        window.onload = function() {
+            testSegmentation();
+        };
+    </script>
+</body>
+</html>

@@ -31,29 +31,38 @@ export function useQuestionDetection({
     newEntries.forEach(entry => {
       processedTranscriptIds.current.add(entry.id)
       
+      // Skip empty or very short entries
+      if (!entry.text || entry.text.trim().length < 3) {
+        return
+      }
+      
       // Get context from recent entries for better detection
       const recentTexts = transcript
         .slice(-5) // Last 5 entries for context
         .map(t => t.text)
+        .filter(text => text && text.trim().length > 0) // Filter out empty texts
       
       const match = questionDetectionService.analyzeSequence(recentTexts)
       
       if (match.isQuestion && match.confidence >= confidenceThreshold) {
-        // Mark the current entry as a question using the store method
-        const { markAsQuestion: storeMarkAsQuestion } = useInterviewStore.getState()
-        storeMarkAsQuestion(entry.id)
-        
-        // Trigger callback if provided
-        if (onQuestionDetected) {
-          onQuestionDetected(entry.text, match)
+        // Double-check the entry text is not empty
+        if (entry.text.trim().length > 0) {
+          // Mark the current entry as a question using the store method
+          const { markAsQuestion: storeMarkAsQuestion } = useInterviewStore.getState()
+          storeMarkAsQuestion(entry.id)
+          
+          // Trigger callback if provided
+          if (onQuestionDetected) {
+            onQuestionDetected(entry.text, match)
+          }
+          
+          console.log('🤖 Auto-detected question:', {
+            text: entry.text,
+            type: match.type,
+            confidence: Math.round(match.confidence * 100) + '%',
+            keywords: match.keywords
+          })
         }
-        
-        console.log('🤖 Auto-detected question:', {
-          text: entry.text,
-          type: match.type,
-          confidence: Math.round(match.confidence * 100) + '%',
-          keywords: match.keywords
-        })
       }
     })
   }, [transcript, autoDetect, confidenceThreshold, onQuestionDetected])

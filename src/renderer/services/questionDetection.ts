@@ -60,7 +60,7 @@ export class QuestionDetectionService {
   detectQuestion(text: string): QuestionMatch {
     const cleanText = text.trim().toLowerCase()
     
-    if (!cleanText) {
+    if (!cleanText || cleanText.length < 3) {
       return { isQuestion: false, confidence: 0, type: 'direct', keywords: [] }
     }
 
@@ -78,7 +78,8 @@ export class QuestionDetectionService {
     const words = cleanText.split(/\s+/)
     const firstWord = words[0]
     
-    if (this.questionWords.includes(firstWord)) {
+    // Require at least 2 words for question word detection
+    if (words.length >= 2 && this.questionWords.includes(firstWord)) {
       confidence += 0.7
       matchedKeywords.push(firstWord)
     }
@@ -123,6 +124,11 @@ export class QuestionDetectionService {
     // Boost confidence for longer texts that match patterns
     if (confidence > 0.3 && words.length > 5) {
       confidence += 0.1
+    }
+    
+    // Penalize very short texts
+    if (words.length < 3) {
+      confidence *= 0.5
     }
 
     // Check for contextual clues

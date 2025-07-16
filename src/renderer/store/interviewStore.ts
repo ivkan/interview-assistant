@@ -28,7 +28,9 @@ export interface SavedInterview {
 
 interface InterviewState {
   isActive: boolean
+  isPaused: boolean
   startTime: Date | null
+  pausedTime: number // Total time spent paused in seconds
   transcript: TranscriptEntry[]
   questions: Question[]
   currentQuestion: Question | null
@@ -37,6 +39,8 @@ interface InterviewState {
   // Actions
   startInterview: () => void
   endInterview: () => void
+  pauseInterview: () => void
+  resumeInterview: () => void
   addTranscriptEntry: (text: string) => void
   markAsQuestion: (entryId: string) => void
   addQuestion: (text: string) => void
@@ -51,7 +55,9 @@ interface InterviewState {
 
 export const useInterviewStore = create<InterviewState>((set, get) => ({
   isActive: false,
+  isPaused: false,
   startTime: null,
+  pausedTime: 0,
   transcript: [],
   questions: [],
   currentQuestion: null,
@@ -60,7 +66,9 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
   startInterview: () => {
     set({
       isActive: true,
+      isPaused: false,
       startTime: new Date(),
+      pausedTime: 0,
       transcript: [],
       questions: [],
       currentQuestion: null
@@ -69,25 +77,37 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
 
   endInterview: () => {
     set({
-      isActive: false
+      isActive: false,
+      isPaused: false
     })
   },
 
+  pauseInterview: () => {
+    set({ isPaused: true })
+  },
+
+  resumeInterview: () => {
+    set({ isPaused: false })
+  },
+
   addTranscriptEntry: (text: string) => {
+    console.log('📝 InterviewStore adding transcript entry:', text)
     const entry: TranscriptEntry = {
       id: Date.now().toString(),
       text,
       timestamp: new Date()
     }
-    set((state) => ({
-      transcript: [...state.transcript, entry]
-    }))
+    set((state) => {
+      const newTranscript = [...state.transcript, entry]
+      console.log('📄 Transcript store updated, total entries:', newTranscript.length)
+      return { transcript: newTranscript }
+    })
   },
 
   markAsQuestion: (entryId: string) => {
     set((state) => {
       const entry = state.transcript.find(e => e.id === entryId)
-      if (entry && !entry.isQuestion) {
+      if (entry && !entry.isQuestion && entry.text && entry.text.trim().length > 0) {
         const updatedTranscript = state.transcript.map(e =>
           e.id === entryId ? { ...e, isQuestion: true } : e
         )

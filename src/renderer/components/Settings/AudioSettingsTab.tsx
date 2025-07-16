@@ -5,13 +5,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Separator } from '../ui/separator'
 import { Mic, Volume2, TestTube } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
-import { useSafeAudioCapture as useAudioCapture } from '../../hooks/useSafeAudioCapture'
+// ELECTRON LEGACY - Audio capture hook commented out for browser version
+// import { useSafeAudioCapture as useAudioCapture } from '../../hooks/useSafeAudioCapture'
 
 export function AudioSettingsTab() {
   const { audioSettings, updateAudioSettings } = useSettingsStore()
-  const { audioDevices, audioLevel } = useAudioCapture()
   const [tempSettings, setTempSettings] = useState(audioSettings)
   const [testingAudio, setTestingAudio] = useState(false)
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([])
+  const [audioLevel, setAudioLevel] = useState(0)
+  const [micPermissionGranted, setMicPermissionGranted] = useState(false)
 
   const handleSave = () => {
     updateAudioSettings(tempSettings)
@@ -21,10 +24,72 @@ export function AudioSettingsTab() {
     setTempSettings(audioSettings)
   }
 
+  // Load available audio devices
+  useEffect(() => {
+    const loadDevices = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        const audioInputs = devices.filter(device => device.kind === 'audioinput')
+        setAudioDevices(audioInputs)
+      } catch (error) {
+        console.error('Failed to load audio devices:', error)
+      }
+    }
+    
+    loadDevices()
+  }, [])
+
   const testMicrophone = async () => {
     setTestingAudio(true)
-    // Test logic would go here
-    setTimeout(() => setTestingAudio(false), 3000)
+    setAudioLevel(0)
+    
+    try {
+      // Request microphone access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: tempSettings.microphoneDeviceId === 'default' ? undefined : tempSettings.microphoneDeviceId,
+          echoCancellation: tempSettings.echoCancellation,
+          noiseSuppression: tempSettings.noiseSuppression
+        }
+      })
+      
+      setMicPermissionGranted(true)
+      
+      // Create audio context for level monitoring
+      const audioContext = new AudioContext()
+      const analyser = audioContext.createAnalyser()
+      const source = audioContext.createMediaStreamSource(stream)
+      
+      source.connect(analyser)
+      analyser.fftSize = 256
+      
+      const bufferLength = analyser.frequencyBinCount
+      const dataArray = new Uint8Array(bufferLength)
+      
+      const updateLevel = () => {
+        if (testingAudio) {
+          analyser.getByteFrequencyData(dataArray)
+          const average = dataArray.reduce((sum, value) => sum + value, 0) / bufferLength
+          setAudioLevel(Math.min(100, (average / 128) * 100))
+          requestAnimationFrame(updateLevel)
+        }
+      }
+      
+      updateLevel()
+      
+      // Test for 5 seconds
+      setTimeout(() => {
+        setTestingAudio(false)
+        setAudioLevel(0)
+        stream.getTracks().forEach(track => track.stop())
+        audioContext.close()
+      }, 5000)
+      
+    } catch (error) {
+      console.error('Microphone test failed:', error)
+      setTestingAudio(false)
+      setMicPermissionGranted(false)
+    }
   }
 
   const hasChanges = JSON.stringify(tempSettings) !== JSON.stringify(audioSettings)
@@ -74,7 +139,7 @@ export function AudioSettingsTab() {
           </Button>
         </div>
 
-        {audioLevel > 0 && (
+        {testingAudio && (
           <div className="space-y-2">
             <Label>Audio Level</Label>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -83,6 +148,17 @@ export function AudioSettingsTab() {
                 style={{ width: `${audioLevel}%` }}
               />
             </div>
+            <p className="text-xs text-muted-foreground">
+              Speak into your microphone to test the audio level
+            </p>
+          </div>
+        )}
+        
+        {!micPermissionGranted && !testingAudio && (
+          <div className="p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              Click "Test Mic" to grant microphone permission and test audio levels
+            </p>
           </div>
         )}
 
@@ -133,18 +209,15 @@ export function AudioSettingsTab() {
             <div className="space-y-1">
               <Label>System Audio Capture</Label>
               <p className="text-xs text-muted-foreground">
-                Capture audio from other applications (experimental)
+                Not available in browser version (security limitation)
               </p>
             </div>
             <Button
-              variant={tempSettings.systemAudioEnabled ? "default" : "outline"}
+              variant="outline"
               size="sm"
-              onClick={() => setTempSettings(prev => ({ 
-                ...prev, 
-                systemAudioEnabled: !prev.systemAudioEnabled 
-              }))}
+              disabled
             >
-              {tempSettings.systemAudioEnabled ? 'Enabled' : 'Disabled'}
+              Not Available
             </Button>
           </div>
         </div>

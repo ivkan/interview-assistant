@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { getBrowserStorage } from '../services/browserStorage'
 
 export interface APIKeys {
   openAI: string
@@ -41,6 +42,7 @@ interface SettingsState {
   updateTranscriptionSettings: (settings: Partial<TranscriptionSettings>) => void
   updateUserProfile: (profile: Partial<UserProfile>) => void
   setTheme: (theme: 'light' | 'dark' | 'system') => void
+  loadSettings: (settings: any) => void
   isConfigured: () => boolean
 }
 
@@ -58,7 +60,7 @@ export const useSettingsStore = create<SettingsState>()(
         noiseSuppression: true
       },
       transcriptionSettings: {
-        language: 'en',
+        language: 'en-US',
         autoDetectLanguage: true,
         punctuation: true,
         speakerLabels: false
@@ -73,31 +75,63 @@ export const useSettingsStore = create<SettingsState>()(
       theme: 'system',
 
       updateAPIKeys: (keys) => {
-        set((state) => ({
-          apiKeys: { ...state.apiKeys, ...keys }
-        }))
+        set((state) => {
+          const newKeys = { ...state.apiKeys, ...keys }
+          // Save to browser storage
+          const storage = getBrowserStorage()
+          storage.saveAPIKeys(newKeys)
+          console.log('🔑 API keys updated:', Object.keys(newKeys).filter(k => newKeys[k as keyof typeof newKeys]))
+          return { apiKeys: newKeys }
+        })
       },
 
       updateAudioSettings: (settings) => {
-        set((state) => ({
-          audioSettings: { ...state.audioSettings, ...settings }
-        }))
+        set((state) => {
+          const newSettings = { ...state.audioSettings, ...settings }
+          // Save to browser storage
+          const storage = getBrowserStorage()
+          storage.saveSettings({ audioDevices: { microphone: newSettings.microphoneDeviceId } })
+          console.log('🎤 Audio settings updated:', newSettings)
+          return { audioSettings: newSettings }
+        })
       },
 
       updateTranscriptionSettings: (settings) => {
-        set((state) => ({
-          transcriptionSettings: { ...state.transcriptionSettings, ...settings }
-        }))
+        set((state) => {
+          const newSettings = { ...state.transcriptionSettings, ...settings }
+          // Save to browser storage
+          const storage = getBrowserStorage()
+          storage.saveSettings({ transcriptionSettings: newSettings })
+          console.log('🔧 Transcription settings updated:', newSettings)
+          return { transcriptionSettings: newSettings }
+        })
       },
 
       updateUserProfile: (profile) => {
-        set((state) => ({
-          userProfile: { ...state.userProfile, ...profile }
-        }))
+        set((state) => {
+          const newProfile = { ...state.userProfile, ...profile }
+          // Save to browser storage
+          const storage = getBrowserStorage()
+          storage.saveUserProfile(newProfile)
+          return { userProfile: newProfile }
+        })
       },
 
       setTheme: (theme) => {
         set({ theme })
+        // Save to browser storage
+        const storage = getBrowserStorage()
+        storage.saveSettings({ theme: theme === 'system' ? 'light' : theme })
+      },
+
+      loadSettings: (settings) => {
+        console.log('💾 Loading settings from storage:', settings)
+        set({
+          audioSettings: settings.audioSettings || get().audioSettings,
+          transcriptionSettings: settings.transcriptionSettings || get().transcriptionSettings,
+          userProfile: settings.userProfile || get().userProfile,
+          theme: settings.theme || get().theme
+        })
       },
 
       isConfigured: () => {
@@ -108,14 +142,14 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'interview-assistant-settings',
-      // Only persist certain fields for security
+      // Browser storage handles persistence via browserStorage service
+      // This zustand persistence is kept as backup/cache
       partialize: (state) => ({
         audioSettings: state.audioSettings,
         transcriptionSettings: state.transcriptionSettings,
         userProfile: state.userProfile,
         theme: state.theme,
-        // Don't persist API keys in localStorage for security
-        // They will be stored via Electron's secure store
+        // API keys are handled separately by browserStorage with encryption
       })
     }
   )

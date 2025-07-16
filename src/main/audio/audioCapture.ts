@@ -1,3 +1,7 @@
+// ELECTRON LEGACY - Audio capture using Electron APIs
+// This file is kept for reference but not used in browser version
+// The browser version uses Web Speech API instead of Electron audio capture
+
 import { ipcMain, systemPreferences, BrowserWindow, desktopCapturer } from 'electron'
 import { EventEmitter } from 'events'
 

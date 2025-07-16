@@ -1,24 +1,42 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Button } from '../ui/button'
 import { ScrollArea } from '../ui/scroll-area'
 import { MessageSquareText, Keyboard, Mic, MicOff, Wifi, WifiOff } from 'lucide-react'
 import { useInterviewStore } from '../../store/interviewStore'
-import { useSafeAudioCapture as useAudioCapture } from '../../hooks/useSafeAudioCapture'
+// ELECTRON LEGACY - Audio capture hook commented out for browser version
+// import { useSafeAudioCapture as useAudioCapture } from '../../hooks/useSafeAudioCapture'
 import { useSettingsStore } from '../../store/settingsStore'
 import { AudioLevelIndicator } from '../AudioLevelIndicator'
+import { getWebSpeechRecognition } from '../../services/webSpeechRecognition'
 import { cn } from '../../utils/cn'
 
 export function TranscriptColumn() {
   const { transcript, isActive, markAsQuestion } = useInterviewStore()
-  const { isCapturing, audioLevel } = useAudioCapture()
   const { apiKeys } = useSettingsStore()
-  // TODO: Replace with new transcription service
-  const isConnected = false
-  const isConnecting = false
-  const partialTranscript = ''
-  const error = null
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [selectedEntryId, setSelectedEntryId] = React.useState<string | null>(null)
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  
+  // Browser version - use Web Speech API status
+  const speechRecognition = getWebSpeechRecognition()
+  const status = speechRecognition.getStatus()
+  const isCapturing = status.isListening
+  const isConnected = status.isAvailable
+  const isConnecting = false
+  const audioLevel = isCapturing ? 0.5 : 0 // Simplified audio level for browser version
+  
+  // Setup event listeners for errors only (no more interim results)
+  useEffect(() => {
+    const handleError = (error: Error) => {
+      setError(error.message)
+    }
+    
+    speechRecognition.on('error', handleError)
+    
+    return () => {
+      speechRecognition.off('error', handleError)
+    }
+  }, [])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -60,19 +78,19 @@ export function TranscriptColumn() {
 
       <ScrollArea className="flex-1 px-4 py-3" ref={scrollRef}>
         <div className="space-y-2">
-          {transcript.length === 0 && !partialTranscript && (
+          {transcript.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               {error ? (
                 <div className="text-red-500">
                   <p>Transcription Error:</p>
                   <p className="text-sm">{error}</p>
                 </div>
-              ) : isActive && isCapturing && isConnected ? (
-                'Listening for speech...'
               ) : isActive && isCapturing ? (
-                'Connecting to transcription service...'
+                'Listening... Speak clearly for best results'
+              ) : isActive && isConnected ? (
+                'Ready to listen - start speaking'
               ) : isActive ? (
-                'Setting up audio capture...'
+                'Web Speech API not available in this browser'
               ) : (
                 'Start an interview to see transcript'
               )}
@@ -91,20 +109,21 @@ export function TranscriptColumn() {
               onClick={() => !entry.isQuestion && setSelectedEntryId(entry.id)}
             >
               <p className="text-sm leading-relaxed">{entry.text}</p>
-              <span className="text-xs text-muted-foreground mt-1">
-                {entry.timestamp.toLocaleTimeString()}
-              </span>
+              <div className="text-xs text-muted-foreground mt-1 flex justify-between">
+                <span>{entry.timestamp.toLocaleTimeString()}</span>
+                {entry.isQuestion && (
+                  <span className="text-primary font-medium">QUESTION</span>
+                )}
+              </div>
             </div>
           ))}
           
-          {partialTranscript && (
-            <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
-              <p className="text-sm leading-relaxed text-blue-900 dark:text-blue-100">
-                {partialTranscript}
-              </p>
-              <span className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                Partial transcript...
-              </span>
+          {isActive && isCapturing && transcript.length > 0 && (
+            <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-800 dark:text-green-200">Listening...</span>
+              </div>
             </div>
           )}
         </div>

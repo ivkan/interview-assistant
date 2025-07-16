@@ -13,10 +13,25 @@ export function HistoryColumn() {
     if (autoScroll && scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
       if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight
+        // Use requestAnimationFrame to ensure DOM is updated
+        requestAnimationFrame(() => {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight
+        })
       }
     }
   }, [questions, autoScroll])
+  
+  // Auto-scroll when current question changes
+  useEffect(() => {
+    if (autoScroll && currentQuestion && scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
+      if (scrollContainer) {
+        setTimeout(() => {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight
+        }, 100) // Small delay to ensure new question is rendered
+      }
+    }
+  }, [currentQuestion, autoScroll])
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     const element = event.target as HTMLDivElement

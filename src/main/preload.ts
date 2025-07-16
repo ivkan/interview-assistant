@@ -1,3 +1,7 @@
+// ELECTRON LEGACY - Preload script for secure IPC communication
+// This file is kept for reference but not used in browser version
+// The browser version uses direct Web APIs instead of IPC
+
 import { contextBridge, ipcRenderer } from 'electron'
 
 // Expose protected methods that allow the renderer process to use

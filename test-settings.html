@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings Test</title>
+</head>
+<body>
+    <h1>Browser Storage Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        // Test the browser storage service
+        const output = document.getElementById('output');
+        
+        // Test 1: Basic storage
+        const testData = {
+            apiKeys: {
+                openAI: 'test-key-123',
+                deepSeek: 'test-key-456'
+            },
+            settings: {
+                language: 'en-US',
+                theme: 'dark',
+                transcriptionSettings: {
+                    language: 'en-US',
+                    autoDetectLanguage: false,
+                    punctuation: true,
+                    speakerLabels: false
+                }
+            }
+        };
+        
+        // Simple storage test
+        try {
+            localStorage.setItem('test-storage', JSON.stringify(testData));
+            const retrieved = JSON.parse(localStorage.getItem('test-storage') || '{}');
+            
+            output.innerHTML += '<p>✅ localStorage test passed</p>';
+            output.innerHTML += '<p>Original: ' + JSON.stringify(testData).substring(0, 50) + '...</p>';
+            output.innerHTML += '<p>Retrieved: ' + JSON.stringify(retrieved).substring(0, 50) + '...</p>';
+            
+        } catch (error) {
+            output.innerHTML += '<p>❌ localStorage test failed: ' + error.message + '</p>';
+        }
+        
+        // Test 2: Web Speech API
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            output.innerHTML += '<p>✅ Web Speech API available</p>';
+            
+            const languages = [
+                'en-US', 'en-GB', 'es-ES', 'fr-FR', 'de-DE', 'it-IT', 
+                'pt-BR', 'ru-RU', 'ja-JP', 'ko-KR', 'zh-CN', 'ar-SA'
+            ];
+            
+            output.innerHTML += '<p>📋 Supported languages: ' + languages.join(', ') + '</p>';
+        } else {
+            output.innerHTML += '<p>❌ Web Speech API not available</p>';
+        }
+        
+        // Test 3: MediaDevices API
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            output.innerHTML += '<p>✅ MediaDevices API available</p>';
+            
+            navigator.mediaDevices.enumerateDevices().then(devices => {
+                const audioInputs = devices.filter(device => device.kind === 'audioinput');
+                output.innerHTML += '<p>🎤 Audio input devices: ' + audioInputs.length + '</p>';
+                audioInputs.forEach(device => {
+                    output.innerHTML += '<p>  - ' + (device.label || device.deviceId) + '</p>';
+                });
+            }).catch(error => {
+                output.innerHTML += '<p>❌ Failed to enumerate devices: ' + error.message + '</p>';
+            });
+        } else {
+            output.innerHTML += '<p>❌ MediaDevices API not available</p>';
+        }
+        
+        // Cleanup
+        localStorage.removeItem('test-storage');
+    </script>
+</body>
+</html>

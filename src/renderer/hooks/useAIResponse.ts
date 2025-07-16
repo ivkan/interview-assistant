@@ -91,7 +91,7 @@ export function useAIResponse({
 
     // Find questions that don't have responses and aren't loading
     const unansweredQuestions = questions.filter(q => 
-      !q.response && !q.isLoading && q.isActive
+      !q.response && !q.isLoading && q.isActive && q.text && q.text.trim().length > 0
     )
 
     if (unansweredQuestions.length > 0) {

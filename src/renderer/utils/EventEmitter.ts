@@ -1,8 +1,10 @@
 // Browser-compatible EventEmitter implementation
-export class EventEmitter {
-  private events: { [key: string]: Function[] } = {}
+type EventListener = (...args: any[]) => void
 
-  on(event: string, listener: Function): void {
+export class EventEmitter {
+  private events: { [key: string]: EventListener[] } = {}
+
+  on(event: string, listener: EventListener): void {
     if (!this.events[event]) {
       this.events[event] = []
     }
@@ -21,7 +23,7 @@ export class EventEmitter {
     }
   }
 
-  off(event: string, listener: Function): void {
+  off(event: string, listener: EventListener): void {
     if (this.events[event]) {
       this.events[event] = this.events[event].filter(l => l !== listener)
     }

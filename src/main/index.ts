@@ -1,3 +1,7 @@
+// ELECTRON LEGACY - Main process entry point
+// This file is kept for reference but not used in browser version
+// The browser version uses direct Web APIs instead of Electron APIs
+
 import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron'
 import path from 'path'
 import { registerAudioHandlers } from './audio/audioCapture'

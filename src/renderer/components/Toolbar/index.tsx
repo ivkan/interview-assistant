@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
-import { Play, Square, Moon, Sun, Save } from 'lucide-react'
+import { Play, Square, Pause, Moon, Sun, Save } from 'lucide-react'
 import { useTheme } from '../ThemeProvider'
 import { useInterviewStore } from '../../store/interviewStore'
 import { Settings } from '../Settings'
@@ -14,7 +14,7 @@ interface ToolbarProps {
 
 export function Toolbar({ isActive, elapsedTime, onToggleInterview }: ToolbarProps) {
   const { theme, setTheme } = useTheme()
-  const { transcript, questions, saveCurrentInterview } = useInterviewStore()
+  const { transcript, questions, isPaused, pauseInterview, resumeInterview, saveCurrentInterview } = useInterviewStore()
   const [isSaving, setIsSaving] = useState(false)
 
   const formatTime = (seconds: number) => {
@@ -43,6 +43,14 @@ export function Toolbar({ isActive, elapsedTime, onToggleInterview }: ToolbarPro
   }
 
   const canSave = transcript.length > 0 || questions.length > 0
+  
+  const handleTogglePause = () => {
+    if (isPaused) {
+      resumeInterview()
+    } else {
+      pauseInterview()
+    }
+  }
 
   return (
     <div className="flex items-center justify-between px-6 py-3 border-b bg-background">
@@ -83,9 +91,32 @@ export function Toolbar({ isActive, elapsedTime, onToggleInterview }: ToolbarPro
         <Separator orientation="vertical" className="h-6" />
 
         <div className="flex items-center space-x-3">
-          <span className="font-mono text-lg font-medium">
+          <span className={`font-mono text-lg font-medium ${isPaused ? 'text-yellow-600' : ''}`}>
             {formatTime(elapsedTime)}
+            {isPaused && (
+              <span className="text-yellow-600 ml-2">(PAUSED)</span>
+            )}
           </span>
+
+          {isActive && (
+            <Button
+              onClick={handleTogglePause}
+              variant={isPaused ? 'default' : 'outline'}
+              size="sm"
+            >
+              {isPaused ? (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  Resume
+                </>
+              ) : (
+                <>
+                  <Pause className="w-4 h-4 mr-2" />
+                  Pause
+                </>
+              )}
+            </Button>
+          )}
 
           <Button
             onClick={onToggleInterview}

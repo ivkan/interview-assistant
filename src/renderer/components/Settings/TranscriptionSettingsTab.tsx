@@ -136,13 +136,14 @@ export function TranscriptionSettingsTab() {
 
       <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg">
         <h4 className="text-sm font-medium mb-2 text-green-900 dark:text-green-100">
-          🌍 Language Support
+          🌍 Web Speech API Language Support
         </h4>
         <ul className="text-xs text-green-800 dark:text-green-200 space-y-1">
-          <li>• Auto-detection works best with clear speech</li>
+          <li>• Language codes are Web Speech API compatible</li>
+          <li>• Auto-detection is handled by the browser</li>
           <li>• Manual language selection improves accuracy</li>
           <li>• AI responses will match your selected language</li>
-          <li>• Quality may vary for less common languages</li>
+          <li>• Quality depends on browser and OS support</li>
         </ul>
       </div>
 
