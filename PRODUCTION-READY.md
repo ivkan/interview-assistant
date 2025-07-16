@@ -3,7 +3,7 @@
 ## ✅ Complete Feature Set
 
 ### 🎤 Real-time Transcription System
-- **AssemblyAI Integration**: WebSocket streaming with auto-reconnection
+- **Speech-to-Text Integration**: Streaming transcription (to be integrated)
 - **Audio Capture**: Microphone + system audio with Web Audio API
 - **Visual Feedback**: Live audio levels, connection status, partial transcripts
 - **Error Handling**: Graceful failures, retry logic, clear error messages
@@ -63,7 +63,7 @@ pnpm run build
 - **Hardware**: Microphone (internal or external)
 
 ### API Requirements
-- **AssemblyAI**: Real-time transcription (required)
+- **Speech-to-Text Service**: Real-time transcription (to be integrated)
 - **OpenAI OR DeepSeek**: AI responses (one required)
 - **Costs**: ~$0.01-0.05 per interview hour depending on usage
 
@@ -186,7 +186,7 @@ A **complete AI-powered interview assistant** that transforms interview preparat
 ### Technical Excellence
 - **19 Core Components**: Modular, maintainable architecture
 - **8 Custom Hooks**: Reusable React logic
-- **4 API Integrations**: AssemblyAI, OpenAI, DeepSeek, Electron
+- **3 API Integrations**: OpenAI, DeepSeek, Electron
 - **Zero Runtime Errors**: Comprehensive error handling
 - **100% TypeScript**: Type-safe development
 - **Production Ready**: Deployable today
@@ -211,4 +211,4 @@ The Interview Assistant is **production-ready** and **ready for real-world use**
 
 ---
 
-*Built with ❤️ using React, Electron, AssemblyAI, and OpenAI*
+*Built with ❤️ using React, Electron, and OpenAI*

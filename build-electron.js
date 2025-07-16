@@ -8,7 +8,7 @@ const buildMain = async () => {
     platform: 'node',
     target: 'node18',
     outfile: path.resolve(__dirname, 'dist/main/index.js'),
-    external: ['electron', 'assemblyai'],
+    external: ['electron'],
     format: 'cjs',
     sourcemap: true,
     minify: process.env.NODE_ENV === 'production'
@@ -20,7 +20,7 @@ const buildMain = async () => {
     platform: 'node',
     target: 'node18',
     outfile: path.resolve(__dirname, 'dist/main/preload.js'),
-    external: ['electron', 'assemblyai'],
+    external: ['electron'],
     format: 'cjs',
     sourcemap: true,
     minify: process.env.NODE_ENV === 'production'

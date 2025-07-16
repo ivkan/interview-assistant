@@ -40,7 +40,7 @@ pnpm install
 ```bash
 # 1. Set up API key
 cp .env.test .env
-# Add your AssemblyAI API key to .env
+# Add your API keys to .env
 
 # 2. Start development
 pnpm run dev
@@ -56,8 +56,8 @@ pnpm run typecheck
 ## ✅ Complete: Full AI Assistant System
 
 ### Live Transcription System
-1. **AssemblyAI WebSocket**: ✅ Real-time streaming connection
-2. **Audio Pipeline**: ✅ Microphone → Audio Processing → AssemblyAI
+1. **Speech-to-Text Service**: 🚧 To be integrated
+2. **Audio Pipeline**: ✅ Microphone → Audio Processing → Speech-to-Text
 3. **Visual Feedback**: ✅ Connection status, audio levels, partial transcripts
 4. **Error Handling**: ✅ Reconnection, error display, graceful fallbacks
 

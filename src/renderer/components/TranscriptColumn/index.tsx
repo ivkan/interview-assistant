@@ -4,7 +4,6 @@ import { ScrollArea } from '../ui/scroll-area'
 import { MessageSquareText, Keyboard, Mic, MicOff, Wifi, WifiOff } from 'lucide-react'
 import { useInterviewStore } from '../../store/interviewStore'
 import { useSafeAudioCapture as useAudioCapture } from '../../hooks/useSafeAudioCapture'
-// import { useAssemblyAI } from '../../hooks/useAssemblyAI' // Removed AssemblyAI
 import { useSettingsStore } from '../../store/settingsStore'
 import { AudioLevelIndicator } from '../AudioLevelIndicator'
 import { cn } from '../../utils/cn'

@@ -10,8 +10,8 @@ Thank you for your interest in contributing to Interview Assistant! This guide w
 - **TypeScript** knowledge
 - **React** and **Electron** experience
 - **API Keys** for testing:
-  - AssemblyAI (required)
   - OpenAI or DeepSeek (required)
+  - Google Cloud (optional for Speech-to-Text)
 
 ## 🚀 Quick Start
 
@@ -56,11 +56,11 @@ src/
 │   │   └── HistoryColumn/
 │   ├── hooks/             # Custom React hooks
 │   │   ├── useAudioCapture.ts
-│   │   ├── useAssemblyAI.ts
+│   │   ├── useSpeechToText.ts
 │   │   ├── useQuestionDetection.ts
 │   │   └── useAIResponse.ts
 │   ├── services/          # API integrations
-│   │   ├── assemblyAI.ts
+│   │   ├── speechToText.ts
 │   │   ├── aiResponse.ts
 │   │   └── questionDetection.ts
 │   ├── store/             # State management
@@ -77,7 +77,7 @@ src/
 - **Desktop**: Electron
 - **State**: Zustand
 - **Build**: Vite + esbuild
-- **Speech**: AssemblyAI WebSocket API
+- **Speech**: Google Cloud Speech-to-Text API
 - **AI**: OpenAI GPT-4o-mini / DeepSeek
 
 ## 🔧 Development Workflow
@@ -172,7 +172,7 @@ export const useMyStore = create<MyState>((set) => ({
 
 Audio flows through these stages:
 ```
-Microphone → Web Audio API → Float32Array → IPC → AssemblyAI → Transcript
+Microphone → Web Audio API → Float32Array → IPC → Speech-to-Text → Transcript
 ```
 
 Key files:
@@ -273,7 +273,7 @@ Monitor these metrics during development:
 - Test with different browsers/apps
 
 **Transcription failing**:
-- Validate AssemblyAI API key
+- Validate Speech-to-Text service configuration
 - Check network connectivity
 - Monitor console for WebSocket errors
 
@@ -341,7 +341,7 @@ Use GitHub issues with:
 - [Electron Documentation](https://www.electronjs.org/docs)
 - [React Documentation](https://react.dev/)
 - [shadcn/ui Components](https://ui.shadcn.com/)
-- [AssemblyAI API Docs](https://www.assemblyai.com/docs/)
+- [Google Cloud Speech-to-Text Docs](https://cloud.google.com/speech-to-text/docs)
 - [OpenAI API Docs](https://platform.openai.com/docs/)
 
 ### Tools

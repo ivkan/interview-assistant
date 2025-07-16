@@ -21,7 +21,6 @@ export function registerIPCHandlers() {
     try {
       const settings = store.get('settings', {
         apiKeys: {
-          assemblyAI: '', // To be removed
           openAI: '',
           deepSeek: ''
         },

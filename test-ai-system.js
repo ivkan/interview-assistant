@@ -40,7 +40,7 @@ if (envExists) {
 
 console.log()
 console.log('🎯 Complete System Flow:')
-console.log('   1. 🎤 Audio Capture → AssemblyAI → Live Transcript')
+console.log('   1. 🎤 Audio Capture → Speech-to-Text → Live Transcript')
 console.log('   2. 🧠 Question Detection → Auto/Manual Question Marking')  
 console.log('   3. 🤖 AI Response → Context-Aware Answer Generation')
 console.log('   4. 📱 Real-time Display → Streaming Response UI')

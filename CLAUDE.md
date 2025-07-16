@@ -9,7 +9,7 @@ Interview Assistant is an Electron-based desktop application that provides real-
 - **Frontend**: React 18 with TypeScript
 - **UI Framework**: shadcn/ui components with Tailwind CSS
 - **Desktop Framework**: Electron
-- **Speech Recognition**: AssemblyAI Streaming API
+- **Speech Recognition**: Google Cloud Speech-to-Text API
 - **AI Responses**: OpenAI API / DeepSeek API
 - **State Management**: Zustand
 - **Build Tools**: Vite, electron-builder
@@ -53,11 +53,11 @@ Interview Assistant is an Electron-based desktop application that provides real-
 
 ## API Integrations
 
-### AssemblyAI
-- WebSocket connection for streaming transcription
-- Real-time speech-to-text with low latency
-- Language detection capabilities
-- Speaker diarization (future enhancement)
+### Google Cloud Speech-to-Text
+- Streaming recognition for real-time transcription
+- Low latency speech-to-text conversion
+- Automatic language detection
+- Speaker diarization support
 
 ### AI Response Services
 - **OpenAI**: GPT-4 for comprehensive responses
@@ -129,7 +129,8 @@ npm run build        # Build for production
 
 ## Environment Variables
 ```env
-VITE_ASSEMBLYAI_API_KEY=your_key_here
+GOOGLE_CLOUD_PROJECT_ID=your_project_id_here
+GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json
 VITE_OPENAI_API_KEY=your_key_here
 VITE_DEEPSEEK_API_KEY=your_key_here
 ```

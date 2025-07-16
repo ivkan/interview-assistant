@@ -20,7 +20,6 @@ function App() {
   // Load API keys from environment variables on startup
   useEffect(() => {
     const envKeys = {
-      assemblyAI: '', // Removed AssemblyAI
       openAI: import.meta.env.VITE_OPENAI_API_KEY || '',
       deepSeek: import.meta.env.VITE_DEEPSEEK_API_KEY || ''
     }

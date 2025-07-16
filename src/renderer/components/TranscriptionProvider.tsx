@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 // import { useAudioCapture } from '../hooks/useAudioCapture'
 import { useSafeAudioCapture as useAudioCapture } from '../hooks/useSafeAudioCapture'
-// import { useAssemblyAI } from '../hooks/useAssemblyAI' // Removed AssemblyAI
 import { useQuestionDetection } from '../hooks/useQuestionDetection'
 import { useAIResponse } from '../hooks/useAIResponse'
 import { useSettingsStore } from '../store/settingsStore'
@@ -14,7 +13,6 @@ export function TranscriptionProvider({ children }: TranscriptionProviderProps) 
   const { apiKeys, transcriptionSettings } = useSettingsStore()
   
   // TODO: Initialize new transcription service
-  // Temporarily disabled AssemblyAI integration
 
   // Initialize question detection
   const questionDetection = useQuestionDetection({

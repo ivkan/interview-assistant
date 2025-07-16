@@ -3,10 +3,10 @@
 ## 🎯 Prerequisites
 
 ### 1. API Keys Required
-- **AssemblyAI**: Sign up at https://www.assemblyai.com/
 - **OpenAI** OR **DeepSeek**: 
   - OpenAI: https://platform.openai.com/
   - DeepSeek: https://www.deepseek.com/
+- **Google Cloud**: For Speech-to-Text (optional)
 
 ### 2. Environment Setup
 ```bash
@@ -18,9 +18,10 @@ pnpm install
 # Configure API keys
 cp .env.test .env
 # Edit .env with your real API keys:
-# VITE_ASSEMBLYAI_API_KEY=your_assemblyai_key
 # VITE_OPENAI_API_KEY=your_openai_key
 # VITE_DEEPSEEK_API_KEY=your_deepseek_key
+# GOOGLE_CLOUD_PROJECT_ID=your_project_id
+# GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json
 ```
 
 ## 🚀 End-to-End Testing
@@ -49,7 +50,7 @@ pnpm run dev
 
 ### Phase 3: Transcription Test
 1. **Wait for connection**
-   - ✅ Blue wifi icon appears (AssemblyAI connected)
+   - ✅ Blue wifi icon appears (Speech-to-Text connected)
    - ✅ Status changes to "Listening for speech..."
 
 2. **Speak clearly into microphone:**
@@ -229,7 +230,7 @@ Expected: Personalized responses using your background
 ## 🐛 Common Issues & Solutions
 
 ### Transcription Not Working
-- Check AssemblyAI API key
+- Check Speech-to-Text service configuration
 - Verify microphone permissions
 - Test with different microphone
 - Check network connectivity
