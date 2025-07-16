@@ -20,7 +20,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveInterview: (data: any) => ipcRenderer.invoke('interview:save', data),
   loadInterviews: () => ipcRenderer.invoke('interview:load-all'),
   
+  // IPC methods
+  invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
+  
   // Event listeners
+  on: (channel: string, callback: (...args: any[]) => void) => {
+    ipcRenderer.on(channel, (_event, ...args) => callback(...args))
+  },
   onAudioData: (callback: (data: any) => void) => {
     ipcRenderer.on('audio:data', (_event, data) => callback(data))
   },

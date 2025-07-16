@@ -14,6 +14,7 @@ import { APIKeysTab } from './APIKeysTab'
 import { UserProfileTab } from './UserProfileTab'
 import { AudioSettingsTab } from './AudioSettingsTab'
 import { TranscriptionSettingsTab } from './TranscriptionSettingsTab'
+import { GoogleCloudStatus } from './GoogleCloudStatus'
 
 interface SettingsProps {
   trigger?: React.ReactNode
@@ -60,6 +61,7 @@ export function Settings({ trigger }: SettingsProps) {
           </TabsContent>
 
           <TabsContent value="transcription" className="space-y-4">
+            <GoogleCloudStatus />
             <TranscriptionSettingsTab />
           </TabsContent>
         </Tabs>

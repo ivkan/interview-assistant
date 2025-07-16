@@ -4,7 +4,7 @@ import { ScrollArea } from '../ui/scroll-area'
 import { MessageSquareText, Keyboard, Mic, MicOff, Wifi, WifiOff } from 'lucide-react'
 import { useInterviewStore } from '../../store/interviewStore'
 import { useSafeAudioCapture as useAudioCapture } from '../../hooks/useSafeAudioCapture'
-// import { useAssemblyAI } from '../../hooks/useAssemblyAI' // Removed AssemblyAI
+import { useGoogleSpeechTranscription } from '../../hooks/useGoogleSpeechTranscription'
 import { useSettingsStore } from '../../store/settingsStore'
 import { AudioLevelIndicator } from '../AudioLevelIndicator'
 import { cn } from '../../utils/cn'
@@ -12,12 +12,11 @@ import { cn } from '../../utils/cn'
 export function TranscriptColumn() {
   const { transcript, isActive, markAsQuestion } = useInterviewStore()
   const { isCapturing, audioLevel } = useAudioCapture()
-  const { apiKeys } = useSettingsStore()
-  // TODO: Replace with new transcription service
-  const isConnected = false
-  const isConnecting = false
-  const partialTranscript = ''
-  const error = null
+  const { error, connectionStatus, partialTranscript } = useGoogleSpeechTranscription()
+  
+  // Map connection status to boolean values for UI
+  const isConnected = connectionStatus === 'connected'
+  const isConnecting = connectionStatus === 'connecting'
   const scrollRef = useRef<HTMLDivElement>(null)
   const [selectedEntryId, setSelectedEntryId] = React.useState<string | null>(null)
 
@@ -66,7 +65,8 @@ export function TranscriptColumn() {
               {error ? (
                 <div className="text-red-500">
                   <p>Transcription Error:</p>
-                  <p className="text-sm">{error}</p>
+                  <p className="text-sm">{error.message}</p>
+                  {error.code && <p className="text-xs text-red-400">Code: {error.code}</p>}
                 </div>
               ) : isActive && isCapturing && isConnected ? (
                 'Listening for speech...'

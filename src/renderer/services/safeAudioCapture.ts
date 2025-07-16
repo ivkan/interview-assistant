@@ -16,7 +16,8 @@ export class SafeAudioCaptureService extends EventEmitter {
   private analyser: AnalyserNode | null = null
   private isCapturing = false
   private animationId: number | null = null
-  private audioProcessor: any = null // For AudioWorklet when available
+  private audioProcessor: AudioWorkletNode | null = null
+  private isWorkletSupported = false
 
   async initialize() {
     // Initialization if needed
@@ -26,6 +27,12 @@ export class SafeAudioCaptureService extends EventEmitter {
     if (this.isCapturing) {
       console.warn('Audio capture already in progress')
       return
+    }
+    
+    // Additional check to prevent race conditions
+    if (this.microphoneStream || this.audioContext) {
+      console.warn('Audio resources already initialized, stopping previous capture')
+      await this.stopCapture()
     }
 
     try {
@@ -70,27 +77,53 @@ export class SafeAudioCaptureService extends EventEmitter {
       // Connect microphone to analyser
       this.microphoneSource.connect(this.analyser)
       
-      // Try to use AudioWorklet if available (modern approach)
+      // Try to use AudioWorklet for optimal performance
       const ctx = this.audioContext
-      if (ctx && ctx.audioWorklet && false) { // Disabled for now
+      if (ctx && ctx.audioWorklet) {
         try {
-          await ctx.audioWorklet.addModule('/audio-processor.js')
-          this.audioProcessor = new (window as any).AudioWorkletNode(ctx, 'audio-processor')
+          // Load the audio worklet processor
+          await ctx.audioWorklet.addModule('/audioProcessor.worklet.js')
+          this.audioProcessor = new AudioWorkletNode(ctx, 'audio-processor')
           this.microphoneSource!.connect(this.audioProcessor)
           
+          // Handle messages from the worklet
           this.audioProcessor.port.onmessage = (event: MessageEvent) => {
-            if (event.data.type === 'audio-data') {
-              this.emit('audio-data', event.data.samples, event.data.sampleRate)
+            if (event.data.type === 'audio') {
+              // Convert ArrayBuffer back to Float32Array for compatibility
+              const int16Data = new Int16Array(event.data.data)
+              const floatData = new Float32Array(int16Data.length)
+              
+              // Convert Int16 back to Float32 for level calculation
+              for (let i = 0; i < int16Data.length; i++) {
+                floatData[i] = int16Data[i] / 32767
+              }
+              
+              // Emit the processed audio data
+              this.emit('audio-data', floatData, event.data.sampleRate)
+            } else if (event.data.type === 'config') {
+              console.log('⚙️ Worklet configuration:', event.data)
             }
           }
+          
+          this.isWorkletSupported = true
+          console.log('✅ AudioWorklet processor loaded successfully')
         } catch (error) {
-          console.warn('AudioWorklet not available, using alternative approach:', error)
+          console.warn('AudioWorklet not available, falling back to alternative approach:', error)
+          this.isWorkletSupported = false
         }
       }
 
-      // Use alternative approach: periodic sampling with AnalyserNode
+      // Use alternative approach: periodic sampling with AnalyserNode (only if worklet not supported)
       this.isCapturing = true
-      this.startAudioMonitoring()
+      
+      if (!this.isWorkletSupported) {
+        console.log('📊 Using fallback audio monitoring (no worklet support)')
+        this.startAudioMonitoring()
+      } else {
+        console.log('🎛️ Using AudioWorklet for audio processing')
+        // Still start monitoring for audio levels even with worklet
+        this.startAudioLevelMonitoring()
+      }
 
       this.emit('capture-started')
       console.log('✅ Audio capture started successfully')
@@ -108,8 +141,6 @@ export class SafeAudioCaptureService extends EventEmitter {
   private startAudioMonitoring() {
     if (!this.analyser || !this.audioContext) return
 
-    const bufferLength = this.analyser.frequencyBinCount
-    const dataArray = new Uint8Array(bufferLength)
     const timeDataArray = new Float32Array(this.analyser.fftSize)
 
     let lastEmitTime = 0
@@ -118,24 +149,26 @@ export class SafeAudioCaptureService extends EventEmitter {
     const monitor = () => {
       if (!this.isCapturing) return
 
-      // Get frequency data for visualization
-      this.analyser!.getByteFrequencyData(dataArray)
+      // Get time domain data for more accurate level calculation
+      this.analyser!.getFloatTimeDomainData(timeDataArray)
       
-      // Calculate audio level
+      // Calculate RMS (Root Mean Square) for better audio level detection
       let sum = 0
-      for (let i = 0; i < bufferLength; i++) {
-        sum += dataArray[i]
+      for (let i = 0; i < timeDataArray.length; i++) {
+        sum += timeDataArray[i] * timeDataArray[i]
       }
-      const average = sum / bufferLength
-      const normalizedLevel = average / 255
+      const rms = Math.sqrt(sum / timeDataArray.length)
+      
+      // Convert to decibels and normalize for better visualization
+      const db = 20 * Math.log10(rms)
+      const normalizedLevel = Math.max(0, Math.min(100, (db + 60) * 2)) // Map -60dB to 0, -30dB to 60, 0dB to 120 (clamped to 100)
       
       this.emit('audio-level', normalizedLevel)
 
       // Emit audio data periodically for transcription
       const now = Date.now()
       if (now - lastEmitTime > EMIT_INTERVAL) {
-        // Get time domain data (actual audio samples)
-        this.analyser!.getFloatTimeDomainData(timeDataArray)
+        // Use the same time domain data we already have
         
         // Send to main process and emit for transcription
         if (window.electronAPI) {
@@ -148,6 +181,36 @@ export class SafeAudioCaptureService extends EventEmitter {
         this.emit('audio-data', timeDataArray, this.audioContext!.sampleRate)
         lastEmitTime = now
       }
+
+      this.animationId = requestAnimationFrame(monitor)
+    }
+
+    monitor()
+  }
+
+  private startAudioLevelMonitoring() {
+    if (!this.analyser || !this.audioContext) return
+
+    const timeDataArray = new Float32Array(this.analyser.fftSize)
+
+    const monitor = () => {
+      if (!this.isCapturing) return
+
+      // Get time domain data for level calculation only
+      this.analyser!.getFloatTimeDomainData(timeDataArray)
+      
+      // Calculate RMS (Root Mean Square) for better audio level detection
+      let sum = 0
+      for (let i = 0; i < timeDataArray.length; i++) {
+        sum += timeDataArray[i] * timeDataArray[i]
+      }
+      const rms = Math.sqrt(sum / timeDataArray.length)
+      
+      // Convert to decibels and normalize for better visualization
+      const db = 20 * Math.log10(rms)
+      const normalizedLevel = Math.max(0, Math.min(100, (db + 60) * 2))
+      
+      this.emit('audio-level', normalizedLevel)
 
       this.animationId = requestAnimationFrame(monitor)
     }

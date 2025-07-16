@@ -2,6 +2,10 @@ import { app, BrowserWindow, ipcMain, globalShortcut } from 'electron'
 import path from 'path'
 import { registerAudioHandlers } from './audio/audioCapture'
 import { registerIPCHandlers } from './ipc/handlers'
+import * as dotenv from 'dotenv'
+
+// Load environment variables
+dotenv.config()
 
 let mainWindow: BrowserWindow | null = null
 const isDev = process.argv.includes('--dev')
@@ -52,8 +56,11 @@ app.whenReady().then(() => {
   registerAudioHandlers()
   registerIPCHandlers()
   
-  // TODO: Initialize new transcription service
-  console.log('⚠️ Transcription service to be integrated')
+  // Log environment configuration
+  console.log('📋 Environment Configuration:')
+  console.log('  - GOOGLE_APPLICATION_CREDENTIALS:', process.env.GOOGLE_APPLICATION_CREDENTIALS || 'Not set')
+  console.log('  - GOOGLE_CLOUD_PROJECT_ID:', process.env.GOOGLE_CLOUD_PROJECT_ID || 'Not set')
+  console.log('  - Working directory:', process.cwd())
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

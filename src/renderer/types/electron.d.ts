@@ -15,7 +15,11 @@ export interface ElectronAPI {
   saveInterview: (data: any) => Promise<{ success: boolean; id?: string; error?: string }>
   loadInterviews: () => Promise<{ success: boolean; data: any[]; error?: string }>
   
+  // IPC methods
+  invoke: (channel: string, ...args: any[]) => Promise<any>
+  
   // Event listeners
+  on: (channel: string, callback: (...args: any[]) => void) => void
   onAudioData: (callback: (data: any) => void) => void
   onAudioCaptureStarted: (callback: () => void) => void
   onAudioCaptureStopped: (callback: () => void) => void

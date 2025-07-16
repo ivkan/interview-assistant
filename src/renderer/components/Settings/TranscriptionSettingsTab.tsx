@@ -6,23 +6,27 @@ import { Separator } from '../ui/separator'
 import { useSettingsStore } from '../../store/settingsStore'
 
 const SUPPORTED_LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'it', name: 'Italian' },
-  { code: 'pt', name: 'Portuguese' },
-  { code: 'ru', name: 'Russian' },
-  { code: 'ja', name: 'Japanese' },
-  { code: 'ko', name: 'Korean' },
-  { code: 'zh', name: 'Chinese (Mandarin)' },
-  { code: 'ar', name: 'Arabic' },
-  { code: 'hi', name: 'Hindi' },
-  { code: 'nl', name: 'Dutch' },
-  { code: 'sv', name: 'Swedish' },
-  { code: 'da', name: 'Danish' },
-  { code: 'no', name: 'Norwegian' },
-  { code: 'fi', name: 'Finnish' }
+  { code: 'en-US', name: 'English (US)' },
+  { code: 'en-GB', name: 'English (UK)' },
+  { code: 'es-ES', name: 'Spanish (Spain)' },
+  { code: 'es-MX', name: 'Spanish (Mexico)' },
+  { code: 'fr-FR', name: 'French (France)' },
+  { code: 'fr-CA', name: 'French (Canada)' },
+  { code: 'de-DE', name: 'German (Germany)' },
+  { code: 'it-IT', name: 'Italian (Italy)' },
+  { code: 'pt-PT', name: 'Portuguese (Portugal)' },
+  { code: 'pt-BR', name: 'Portuguese (Brazil)' },
+  { code: 'ru-RU', name: 'Russian (Russia)' },
+  { code: 'ja-JP', name: 'Japanese (Japan)' },
+  { code: 'ko-KR', name: 'Korean (Korea)' },
+  { code: 'zh-CN', name: 'Chinese (Mandarin, China)' },
+  { code: 'ar-AE', name: 'Arabic (UAE)' },
+  { code: 'hi-IN', name: 'Hindi (India)' },
+  { code: 'nl-NL', name: 'Dutch (Netherlands)' },
+  { code: 'sv-SE', name: 'Swedish (Sweden)' },
+  { code: 'da-DK', name: 'Danish (Denmark)' },
+  { code: 'no-NO', name: 'Norwegian (Norway)' },
+  { code: 'fi-FI', name: 'Finnish (Finland)' }
 ]
 
 export function TranscriptionSettingsTab() {

@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export interface APIKeys {
-  assemblyAI: string // To be removed completely after migration
+  googleCloud: string
   openAI: string
   deepSeek: string
 }
@@ -49,7 +49,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       apiKeys: {
-        assemblyAI: '', // To be removed completely after migration
+        googleCloud: '',
         openAI: '',
         deepSeek: ''
       },
@@ -60,7 +60,7 @@ export const useSettingsStore = create<SettingsState>()(
         noiseSuppression: true
       },
       transcriptionSettings: {
-        language: 'en',
+        language: 'en-US',
         autoDetectLanguage: true,
         punctuation: true,
         speakerLabels: false
@@ -104,7 +104,7 @@ export const useSettingsStore = create<SettingsState>()(
 
       isConfigured: () => {
         const { apiKeys } = get()
-        // Removed AssemblyAI requirement, only need AI provider
+        // Google Cloud uses service account auth, not API keys
         return !!(apiKeys.openAI || apiKeys.deepSeek)
       }
     }),

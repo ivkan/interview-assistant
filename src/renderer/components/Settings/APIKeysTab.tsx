@@ -125,8 +125,8 @@ export function APIKeysTab() {
       <div className="bg-muted/50 p-4 rounded-lg">
         <h4 className="text-sm font-medium mb-2">Requirements</h4>
         <ul className="text-xs text-muted-foreground space-y-1">
+          <li>• Google Cloud transcription uses service account authentication (configured via environment)</li>
           <li>• At least one AI provider (OpenAI or DeepSeek) is required for responses</li>
-          <li>• Transcription service will be integrated in a future update</li>
           <li>• API keys are stored securely and never shared</li>
         </ul>
       </div>

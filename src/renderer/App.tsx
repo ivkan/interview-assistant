@@ -12,7 +12,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import './utils/mockData' // Load mock data utilities
 
 function App() {
-  const { isActive, startInterview, endInterview, transcript } = useInterviewStore()
+  const { isActive, isPaused, startInterview, endInterview, transcript } = useInterviewStore()
   const { updateAPIKeys } = useSettingsStore()
   const { markAsQuestion } = useQuestionDetection()
   const [elapsedTime, setElapsedTime] = useState(0)
@@ -20,13 +20,13 @@ function App() {
   // Load API keys from environment variables on startup
   useEffect(() => {
     const envKeys = {
-      assemblyAI: '', // Removed AssemblyAI
+      googleCloud: import.meta.env.VITE_GOOGLE_CLOUD_API_KEY || '',
       openAI: import.meta.env.VITE_OPENAI_API_KEY || '',
       deepSeek: import.meta.env.VITE_DEEPSEEK_API_KEY || ''
     }
     
     // Only update if we have keys from environment
-    if (envKeys.openAI || envKeys.deepSeek) {
+    if (envKeys.googleCloud || envKeys.openAI || envKeys.deepSeek) {
       updateAPIKeys(envKeys)
       console.log(`[${new Date().toISOString()}] 🔑 API keys loaded from environment`)
     }
@@ -59,18 +59,19 @@ function App() {
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
     
-    if (isActive) {
+    if (isActive && !isPaused) {
       interval = setInterval(() => {
         setElapsedTime((prev) => prev + 1)
       }, 1000)
-    } else {
+    } else if (!isActive) {
       setElapsedTime(0)
     }
+    // If paused, timer stops but doesn't reset
 
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isActive])
+  }, [isActive, isPaused])
 
   const handleToggleInterview = () => {
     console.log('🎯 Toggle interview clicked, isActive:', isActive)

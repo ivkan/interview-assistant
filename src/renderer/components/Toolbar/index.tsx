@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
-import { Play, Square, Moon, Sun, Save } from 'lucide-react'
+import { Play, Square, Pause, Moon, Sun, Save } from 'lucide-react'
 import { useTheme } from '../ThemeProvider'
 import { useInterviewStore } from '../../store/interviewStore'
 import { Settings } from '../Settings'
@@ -14,7 +14,7 @@ interface ToolbarProps {
 
 export function Toolbar({ isActive, elapsedTime, onToggleInterview }: ToolbarProps) {
   const { theme, setTheme } = useTheme()
-  const { transcript, questions, saveCurrentInterview } = useInterviewStore()
+  const { transcript, questions, saveCurrentInterview, isPaused, pauseInterview, resumeInterview } = useInterviewStore()
   const [isSaving, setIsSaving] = useState(false)
 
   const formatTime = (seconds: number) => {
@@ -43,6 +43,14 @@ export function Toolbar({ isActive, elapsedTime, onToggleInterview }: ToolbarPro
   }
 
   const canSave = transcript.length > 0 || questions.length > 0
+
+  const handlePauseResume = () => {
+    if (isPaused) {
+      resumeInterview()
+    } else {
+      pauseInterview()
+    }
+  }
 
   return (
     <div className="flex items-center justify-between px-6 py-3 border-b bg-background">
@@ -87,23 +95,48 @@ export function Toolbar({ isActive, elapsedTime, onToggleInterview }: ToolbarPro
             {formatTime(elapsedTime)}
           </span>
 
-          <Button
-            onClick={onToggleInterview}
-            variant={isActive ? 'destructive' : 'default'}
-            className="min-w-[120px]"
-          >
-            {isActive ? (
-              <>
-                <Square className="w-4 h-4 mr-2" />
-                End Interview
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                Start Interview
-              </>
+          <div className="flex items-center space-x-2">
+            {/* Pause/Resume button - only visible when interview is active */}
+            {isActive && (
+              <Button
+                onClick={handlePauseResume}
+                variant="outline"
+                size="sm"
+                className="min-w-[100px]"
+              >
+                {isPaused ? (
+                  <>
+                    <Play className="w-4 h-4 mr-2" />
+                    Resume
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-4 h-4 mr-2" />
+                    Pause
+                  </>
+                )}
+              </Button>
             )}
-          </Button>
+
+            {/* Main start/end button */}
+            <Button
+              onClick={onToggleInterview}
+              variant={isActive ? 'destructive' : 'default'}
+              className="min-w-[120px]"
+            >
+              {isActive ? (
+                <>
+                  <Square className="w-4 h-4 mr-2" />
+                  End Interview
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  Start Interview
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

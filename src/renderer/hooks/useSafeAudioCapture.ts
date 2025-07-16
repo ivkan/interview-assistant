@@ -101,8 +101,10 @@ export function useSafeAudioCapture(props?: UseAudioCaptureProps) {
     }
   }, [props?.onAudioData])
 
-  // Start/stop capture based on interview state
+  // Start/stop capture based on interview state - only if we have an onAudioData callback (main transcription component)
   useEffect(() => {
+    if (!props?.onAudioData) return // Don't start capture if no callback is provided
+    
     let mounted = true
     
     const handleCaptureToggle = async () => {
@@ -126,7 +128,7 @@ export function useSafeAudioCapture(props?: UseAudioCaptureProps) {
     return () => {
       mounted = false
     }
-  }, [isActive, isCapturing, startCapture, stopCapture])
+  }, [isActive, isCapturing, startCapture, stopCapture, props?.onAudioData])
 
   return {
     isCapturing,

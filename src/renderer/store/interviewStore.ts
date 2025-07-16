@@ -28,7 +28,9 @@ export interface SavedInterview {
 
 interface InterviewState {
   isActive: boolean
+  isPaused: boolean
   startTime: Date | null
+  pausedTime: number
   transcript: TranscriptEntry[]
   questions: Question[]
   currentQuestion: Question | null
@@ -36,6 +38,8 @@ interface InterviewState {
   
   // Actions
   startInterview: () => void
+  pauseInterview: () => void
+  resumeInterview: () => void
   endInterview: () => void
   addTranscriptEntry: (text: string) => void
   markAsQuestion: (entryId: string) => void
@@ -51,7 +55,9 @@ interface InterviewState {
 
 export const useInterviewStore = create<InterviewState>((set, get) => ({
   isActive: false,
+  isPaused: false,
   startTime: null,
+  pausedTime: 0,
   transcript: [],
   questions: [],
   currentQuestion: null,
@@ -60,16 +66,34 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
   startInterview: () => {
     set({
       isActive: true,
+      isPaused: false,
       startTime: new Date(),
+      pausedTime: 0,
       transcript: [],
       questions: [],
       currentQuestion: null
     })
   },
 
+  pauseInterview: () => {
+    set((state) => ({
+      isPaused: true,
+      pausedTime: state.startTime ? Date.now() - state.startTime.getTime() : 0
+    }))
+  },
+
+  resumeInterview: () => {
+    set((state) => ({
+      isPaused: false,
+      startTime: new Date(Date.now() - state.pausedTime)
+    }))
+  },
+
   endInterview: () => {
     set({
-      isActive: false
+      isActive: false,
+      isPaused: false,
+      pausedTime: 0
     })
   },
 
